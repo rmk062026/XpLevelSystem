@@ -16,4 +16,18 @@ public class PlayerTests
         Assert.Equal(0, player.Experience);
         Assert.Equal(1, player.Level);
     }
+
+    [Fact]
+    public void AddExperience_ShouldIncreaseXpWithoutLevelUp()
+    {
+        // Arrange
+        var player = new Player("Martin");
+
+        // Act
+        player.AddExperience(50);
+
+        // Assert
+        Assert.Equal(50, player.Experience);
+        Assert.Equal(1, player.Level);
+    }
 }
