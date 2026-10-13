@@ -12,4 +12,9 @@ public class Player
         Experience = 0;
         Level = 1;
     }
+
+    public void AddExperience(int amount)
+    {
+        Experience += amount;
+    }
 }
