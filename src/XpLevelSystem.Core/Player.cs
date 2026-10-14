@@ -20,6 +20,6 @@ public class Player
             throw new ArgumentOutOfRangeException(nameof(amount));
         }
         Experience += amount;
-        Level = (Experience / 100) + 1;
+        Level = 1 + (Experience / 100);
     }
 }
