@@ -54,6 +54,11 @@ public class PlayersController : ControllerBase
             return NotFound();
         }
 
+        if (request.Amount <= 0)
+        {
+            return BadRequest("XP må være større enn 0.");
+        }
+
         player.AddExperience(request.Amount);
 
         return Ok(new
