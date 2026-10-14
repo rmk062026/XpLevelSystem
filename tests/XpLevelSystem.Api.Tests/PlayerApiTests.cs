@@ -146,6 +146,21 @@ public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task CreatePlayer_ShouldReturn400WhenNameIsEmpty()
+    {
+        // Arrange
+        var request = new { Name = "" };
+
+        // Act
+        var response = await _client.PostAsJsonAsync(
+            "/api/players",
+            request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }
 public record PlayerResponse(
     int Id,
