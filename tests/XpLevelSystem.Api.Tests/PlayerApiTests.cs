@@ -65,6 +65,37 @@ public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task AddExperience_ShouldUpdatePlayerXpAndLevel()
+    {
+        // Arrange
+        var createResponse = await _client.PostAsJsonAsync(
+            "/api/players",
+            new { Name = "Martin" });
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var createdPlayer = await createResponse.Content
+            .ReadFromJsonAsync<PlayerResponse>();
+
+        Assert.NotNull(createdPlayer);
+
+        // Act
+        var response = await _client.PostAsJsonAsync(
+            $"/api/players/{createdPlayer.Id}/experience",
+            new { Amount = 250 });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var player = await response.Content
+            .ReadFromJsonAsync<PlayerResponse>();
+
+        Assert.NotNull(player);
+        Assert.Equal(250, player.Experience);
+        Assert.Equal(3, player.Level);
+    }
 }
 public record PlayerResponse(
     int Id,
