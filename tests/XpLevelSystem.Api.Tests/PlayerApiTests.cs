@@ -26,4 +26,48 @@ public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
+
+    [Fact]
+    public async Task GetPlayer_ShouldReturn200WhenPlayerExists()
+    {
+        // Arrange
+        var createResponse = await _client.PostAsJsonAsync(
+            "/api/players",
+            new { Name = "Martin" });
+
+        var createdPlayer = await createResponse.Content
+            .ReadFromJsonAsync<PlayerResponse>();
+
+        Assert.NotNull(createdPlayer);
+
+        // Act
+        var response = await _client.GetAsync(
+            $"/api/players/{createdPlayer.Id}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var player = await response.Content
+            .ReadFromJsonAsync<PlayerResponse>();
+
+        Assert.NotNull(player);
+        Assert.Equal("Martin", player.Name);
+        Assert.Equal(0, player.Experience);
+        Assert.Equal(1, player.Level);
+    }
+
+    [Fact]
+    public async Task GetPlayer_ShouldReturn404WhenPlayerDoesNotExist()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/players/999999");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
+public record PlayerResponse(
+    int Id,
+    string Name,
+    int Experience,
+    int Level);
