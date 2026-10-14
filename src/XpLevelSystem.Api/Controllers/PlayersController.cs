@@ -45,6 +45,26 @@ public class PlayersController : ControllerBase
             player.Level
         });
     }
+
+    [HttpPost("{id:int}/experience")]
+    public IActionResult AddExperience(int id, [FromBody] AddExperienceRequest request)
+    {
+        if (!Players.TryGetValue(id, out var player))
+        {
+            return NotFound();
+        }
+
+        player.AddExperience(request.Amount);
+
+        return Ok(new
+        {
+            Id = id,
+            player.Name,
+            player.Experience,
+            player.Level
+        });
+    }
 }
 
 public record CreatePlayerRequest(string Name);
+public record AddExperienceRequest(int Amount);
