@@ -13,6 +13,10 @@ public class PlayersController : ControllerBase
     [HttpPost]
     public IActionResult CreatePlayer([FromBody] CreatePlayerRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return BadRequest("Spillernavn kan ikke være tomt.");
+        }
         int id = _nextId++;
         var player = new Player(request.Name);
 
