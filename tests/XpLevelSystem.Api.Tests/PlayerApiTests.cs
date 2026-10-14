@@ -96,6 +96,41 @@ public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(250, player.Experience);
         Assert.Equal(3, player.Level);
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-50)]
+    public async Task AddExperience_ShouldReturn400ForInvalidXp(int amount)
+    {
+        // Arrange
+        var createResponse = await _client.PostAsJsonAsync(
+            "/api/players",
+            new { Name = "Martin" });
+
+        var createdPlayer = await createResponse.Content
+            .ReadFromJsonAsync<PlayerResponse>();
+
+        Assert.NotNull(createdPlayer);
+
+        // Act
+        var response = await _client.PostAsJsonAsync(
+            $"/api/players/{createdPlayer.Id}/experience",
+            new { Amount = amount });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        // Kontroller at spilleren ikke ble endret
+        var getResponse = await _client.GetAsync(
+            $"/api/players/{createdPlayer.Id}");
+
+        var player = await getResponse.Content
+            .ReadFromJsonAsync<PlayerResponse>();
+
+        Assert.NotNull(player);
+        Assert.Equal(0, player.Experience);
+        Assert.Equal(1, player.Level);
+    }
 }
 public record PlayerResponse(
     int Id,
