@@ -15,6 +15,10 @@ public class Player
 
     public void AddExperience(int amount)
     {
+        if (amount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amount));
+        }
         Experience += amount;
         Level = (Experience / 100) + 1;
     }
