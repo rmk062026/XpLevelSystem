@@ -28,6 +28,23 @@ public class PlayersController : ControllerBase
                 player.Level
             });
     }
+
+    [HttpGet("{id:int}")]
+    public IActionResult GetPlayer(int id)
+    {
+        if (!Players.TryGetValue(id, out var player))
+        {
+            return NotFound();
+        }
+
+        return Ok(new
+        {
+            Id = id,
+            player.Name,
+            player.Experience,
+            player.Level
+        });
+    }
 }
 
 public record CreatePlayerRequest(string Name);
