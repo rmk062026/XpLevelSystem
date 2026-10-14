@@ -131,6 +131,21 @@ public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(0, player.Experience);
         Assert.Equal(1, player.Level);
     }
+
+    [Fact]
+    public async Task AddExperience_ShouldReturn404WhenPlayerDoesNotExist()
+    {
+        // Arrange
+        int playerId = 999999;
+
+        // Act
+        var response = await _client.PostAsJsonAsync(
+            $"/api/players/{playerId}/experience",
+            new { Amount = 100 });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
 public record PlayerResponse(
     int Id,
