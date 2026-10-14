@@ -16,5 +16,6 @@ public class Player
     public void AddExperience(int amount)
     {
         Experience += amount;
+        Level = (Experience / 100) + 1;
     }
 }
