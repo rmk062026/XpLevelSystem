@@ -1,4 +1,4 @@
-services:
+﻿services:
   api:
     build:
       context: .
@@ -10,7 +10,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`) || Path(`/health`)"
       - "traefik.http.routers.api.entrypoints=web"
       - "traefik.http.services.api.loadbalancer.server.port=8080"
     networks:
@@ -55,6 +55,20 @@ services:
       - "127.0.0.1:8081:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - app-network
+
+  api-health:
+    image: busybox:1.37
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://api:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - app-network
 
