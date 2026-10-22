@@ -7,36 +7,42 @@ namespace XpLevelSystem.Api.Controllers;
 [Route("api/players")]
 public class PlayersController : ControllerBase
 {
-    private static readonly Dictionary<int, Player> Players = new();
-    private static int _nextId = 1;
+    private readonly PlayerService _service;
+
+    public PlayersController(PlayerService service)
+    {
+        _service = service;
+    }
 
     [HttpPost]
     public IActionResult CreatePlayer([FromBody] CreatePlayerRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Name))
+        try
         {
-            return BadRequest("Spillernavn kan ikke være tomt.");
-        }
-        int id = _nextId++;
-        var player = new Player(request.Name);
+            int id = _service.CreatePlayer(request.Name);
 
-        Players.Add(id, player);
+            var player = _service.GetPlayer(id)!;
 
-        return Created(
-            $"/api/players/{id}",
-            new
+            return Created($"/api/players/{id}", new
             {
                 Id = id,
                 player.Name,
                 player.Experience,
                 player.Level
             });
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest("Spillernavn kan ikke være tomt.");
+        }
     }
 
     [HttpGet("{id:int}")]
     public IActionResult GetPlayer(int id)
     {
-        if (!Players.TryGetValue(id, out var player))
+        var player = _service.GetPlayer(id);
+
+        if (player == null)
         {
             return NotFound();
         }
@@ -51,27 +57,31 @@ public class PlayersController : ControllerBase
     }
 
     [HttpPost("{id:int}/experience")]
-    public IActionResult AddExperience(int id, [FromBody] AddExperienceRequest request)
+    public IActionResult AddExperience(
+        int id,
+        [FromBody] AddExperienceRequest request)
     {
-        if (!Players.TryGetValue(id, out var player))
+        try
         {
-            return NotFound();
-        }
+            var player = _service.AddExperience(id, request.Amount);
 
-        if (request.Amount <= 0)
+            if (player == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new
+            {
+                Id = id,
+                player.Name,
+                player.Experience,
+                player.Level
+            });
+        }
+        catch (ArgumentOutOfRangeException)
         {
             return BadRequest("XP må være større enn 0.");
         }
-
-        player.AddExperience(request.Amount);
-
-        return Ok(new
-        {
-            Id = id,
-            player.Name,
-            player.Experience,
-            player.Level
-        });
     }
 }
 
