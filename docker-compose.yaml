@@ -1,10 +1,11 @@
-﻿services:
+services:
   api:
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=xpleveldb;Username=xpuser;Password=${POSTGRES_PASSWORD}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,3 +79,4 @@ volumes:
 networks:
   app-network:
     driver: bridge
+
