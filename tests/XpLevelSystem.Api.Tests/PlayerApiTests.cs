@@ -2,6 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
 namespace XpLevelSystem.Api.Tests;
 
@@ -9,10 +16,49 @@ public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
 
+
     public PlayerApiTests(WebApplicationFactory<Program> factory)
     {
         _client = factory.CreateClient();
+
+        var configuration = factory.Services
+            .GetRequiredService<IConfiguration>();
+
+        var jwtKey = configuration["Jwt:Key"]
+            ?? throw new InvalidOperationException("JWT key is missing.");
+
+        var issuer = configuration["Jwt:Issuer"];
+        var audience = configuration["Jwt:Audience"];
+
+        var userId = Guid.NewGuid();
+
+        var claims = new[]
+        {
+        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+        new Claim(ClaimTypes.Name, "TestUser")
+    };
+
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(jwtKey));
+
+        var credentials = new SigningCredentials(
+            key,
+            SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(60),
+            signingCredentials: credentials);
+
+        var tokenString = new JwtSecurityTokenHandler()
+            .WriteToken(token);
+
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", tokenString);
     }
+
 
     [Fact]
     public async Task CreatePlayer_ShouldReturn201Created()

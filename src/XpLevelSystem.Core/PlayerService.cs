@@ -9,25 +9,32 @@ public class PlayerService
         _repository = repository;
     }
 
-    public int CreatePlayer(string name)
+    public int CreatePlayer(Guid userId, string name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new ArgumentException("Spillernavn kan ikke være tomt.");
         }
 
-        var player = new Player(name);
+        var player = new Player(userId, name);
         return _repository.Add(player);
     }
 
-    public Player? GetPlayer(int id)
-    {
-        return _repository.GetById(id);
-    }
-
-    public Player? AddExperience(int id, int amount)
+    public Player? GetPlayer(Guid userId, int id)
     {
         var player = _repository.GetById(id);
+
+        if (player == null || player.UserId != userId)
+        {
+            return null;
+        }
+
+        return player;
+    }
+
+    public Player? AddExperience(Guid userId, int id, int amount)
+    {
+        var player = GetPlayer(userId, id);
 
         if (player == null)
         {
@@ -44,4 +51,5 @@ public class PlayerService
 
         return player;
     }
+
 }

@@ -1,9 +1,13 @@
+
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using XpLevelSystem.Core;
 
 namespace XpLevelSystem.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/players")]
 public class PlayersController : ControllerBase
 {
@@ -14,14 +18,28 @@ public class PlayersController : ControllerBase
         _service = service;
     }
 
+    private Guid GetUserId()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(userId, out var parsedUserId))
+        {
+            throw new UnauthorizedAccessException("Ugyldig bruker-ID.");
+        }
+
+        return parsedUserId;
+    }
+
     [HttpPost]
     public IActionResult CreatePlayer([FromBody] CreatePlayerRequest request)
     {
         try
         {
-            int id = _service.CreatePlayer(request.Name);
+            var userId = GetUserId();
 
-            var player = _service.GetPlayer(id)!;
+            int id = _service.CreatePlayer(userId, request.Name);
+
+            var player = _service.GetPlayer(userId, id)!;
 
             return Created($"/api/players/{id}", new
             {
@@ -40,7 +58,7 @@ public class PlayersController : ControllerBase
     [HttpGet("{id:int}")]
     public IActionResult GetPlayer(int id)
     {
-        var player = _service.GetPlayer(id);
+        var player = _service.GetPlayer(GetUserId(), id);
 
         if (player == null)
         {
@@ -63,7 +81,8 @@ public class PlayersController : ControllerBase
     {
         try
         {
-            var player = _service.AddExperience(id, request.Amount);
+            var player = _service.AddExperience(
+                GetUserId(), id, request.Amount);
 
             if (player == null)
             {

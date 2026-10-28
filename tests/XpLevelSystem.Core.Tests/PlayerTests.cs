@@ -8,8 +8,7 @@ public class PlayerTests
     public void NewPlayer_ShouldStartWithZeroXpAndLevelOne()
     {
         // Arrange
-        var player = new Player("Martin");
-
+        var player = new Player(Guid.NewGuid(), "Martin");
         // Act
 
         // Assert
@@ -21,8 +20,7 @@ public class PlayerTests
     public void AddExperience_ShouldIncreaseXpWithoutLevelUp()
     {
         // Arrange
-        var player = new Player("Martin");
-
+        var player = new Player(Guid.NewGuid(), "Martin");
         // Act
         player.AddExperience(50);
 
@@ -35,8 +33,7 @@ public class PlayerTests
     public void AddExperience_ShouldIncreaseLevel()
     {
         // Arrange
-        var player = new Player("Martin");
-
+        var player = new Player(Guid.NewGuid(), "Martin");
         // Act
         player.AddExperience(100);
 
@@ -48,8 +45,7 @@ public class PlayerTests
     public void AddExperience_ShouldIncreaseMultipleLevels()
     {
         // Arrange
-        var player = new Player("Martin");
-
+        var player = new Player(Guid.NewGuid(), "Martin");
         // Act
         player.AddExperience(250);
 
@@ -64,8 +60,7 @@ public class PlayerTests
     public void AddExperience_ShouldRejectInvalidAmount(int amount)
     {
         // Arrange
-        var player = new Player("Martin");
-
+        var player = new Player(Guid.NewGuid(), "Martin");
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(
             () => player.AddExperience(amount)
