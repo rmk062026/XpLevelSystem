@@ -19,9 +19,12 @@ public class AppDbContext : DbContext
             entity.ToTable("Players");
             entity.Property<int>("Id").ValueGeneratedOnAdd();
             entity.HasKey("Id");
+            entity.Property(p => p.UserId).IsRequired();
             entity.Property(p => p.Name).IsRequired();
             entity.Property(p => p.Experience);
             entity.Property(p => p.Level);
+
+            entity.HasIndex(p => p.UserId);
         });
 
         modelBuilder.Entity<User>(entity =>

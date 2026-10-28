@@ -1,3 +1,4 @@
+
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -15,13 +16,19 @@ namespace XpLevelSystem.Api.Tests;
 public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
-
+    private readonly WebApplicationFactory<Program> _factory;
 
     public PlayerApiTests(WebApplicationFactory<Program> factory)
     {
-        _client = factory.CreateClient();
+        _factory = factory;
+        _client = CreateAuthenticatedClient(Guid.NewGuid());
+    }
 
-        var configuration = factory.Services
+    private HttpClient CreateAuthenticatedClient(Guid userId)
+    {
+        var client = _factory.CreateClient();
+
+        var configuration = _factory.Services
             .GetRequiredService<IConfiguration>();
 
         var jwtKey = configuration["Jwt:Key"]
@@ -30,13 +37,11 @@ public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
         var issuer = configuration["Jwt:Issuer"];
         var audience = configuration["Jwt:Audience"];
 
-        var userId = Guid.NewGuid();
-
         var claims = new[]
         {
-        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-        new Claim(ClaimTypes.Name, "TestUser")
-    };
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim(ClaimTypes.Name, "TestUser")
+        };
 
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(jwtKey));
@@ -55,10 +60,11 @@ public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
         var tokenString = new JwtSecurityTokenHandler()
             .WriteToken(token);
 
-        _client.DefaultRequestHeaders.Authorization =
+        client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", tokenString);
-    }
 
+        return client;
+    }
 
     [Fact]
     public async Task CreatePlayer_ShouldReturn201Created()
@@ -222,7 +228,67 @@ public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task GetPlayer_ShouldReturn401WithoutToken()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        // Act
+        var response = await client.GetAsync("/api/players/1");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task OtherUser_ShouldNotAccessPlayers()
+    {
+        // Arrange
+        using var userA = CreateAuthenticatedClient(Guid.NewGuid());
+        using var userB = CreateAuthenticatedClient(Guid.NewGuid());
+
+        // Bruker A oppretter en spiller
+        var createResponse = await userA.PostAsJsonAsync(
+            "/api/players",
+            new { Name = "PrivatePlayer" });
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var createdPlayer = await createResponse.Content
+            .ReadFromJsonAsync<PlayerResponse>();
+
+        Assert.NotNull(createdPlayer);
+
+        // Act: Bruker B prøver å hente spilleren
+        var getResponse = await userB.GetAsync(
+            $"/api/players/{createdPlayer.Id}");
+
+        // Bruker B prøver å endre spillerens XP
+        var updateResponse = await userB.PostAsJsonAsync(
+            $"/api/players/{createdPlayer.Id}/experience",
+            new { Amount = 500 });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, updateResponse.StatusCode);
+
+        // Kontroller at spilleren ikke ble endret
+        var ownerResponse = await userA.GetAsync(
+            $"/api/players/{createdPlayer.Id}");
+
+        Assert.Equal(HttpStatusCode.OK, ownerResponse.StatusCode);
+
+        var player = await ownerResponse.Content
+            .ReadFromJsonAsync<PlayerResponse>();
+
+        Assert.NotNull(player);
+        Assert.Equal(0, player.Experience);
+        Assert.Equal(1, player.Level);
+    }
 }
+
 public record PlayerResponse(
     int Id,
     string Name,

@@ -6,6 +6,7 @@ services:
     environment:
       ASPNETCORE_HTTP_PORTS: "8080"
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=xpleveldb;Username=xpuser;Password=${POSTGRES_PASSWORD}"
+      Jwt__Key: ${JWT_KEY}
     depends_on:
       postgres:
         condition: service_healthy
