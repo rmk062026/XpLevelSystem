@@ -1,3 +1,4 @@
+
 namespace XpLevelSystem.Core;
 
 public class FakePlayerRepository : IPlayerRepository
@@ -12,14 +13,24 @@ public class FakePlayerRepository : IPlayerRepository
         return id;
     }
 
-    public Player? GetById(int id)
+    public Player? GetById(Guid userId, int id)
     {
-        _players.TryGetValue(id, out Player? player);
-        return player;
+        if (_players.TryGetValue(id, out var player)
+            && player.UserId == userId)
+        {
+            return player;
+        }
+
+        return null;
     }
 
-    public void Update(int id, Player player)
+    public void Update(Guid userId, int id, Player player)
     {
-        _players[id] = player;
+        if (_players.TryGetValue(id, out var existingPlayer)
+            && existingPlayer.UserId == userId
+            && player.UserId == userId)
+        {
+            _players[id] = player;
+        }
     }
 }

@@ -22,9 +22,9 @@ public class PlayerService
 
     public Player? GetPlayer(Guid userId, int id)
     {
-        var player = _repository.GetById(id);
+        var player = _repository.GetById(userId, id);
 
-        if (player == null || player.UserId != userId)
+        if (player == null)
         {
             return null;
         }
@@ -47,7 +47,7 @@ public class PlayerService
         }
 
         player.AddExperience(amount);
-        _repository.Update(id, player);
+        _repository.Update(userId, id, player);
 
         return player;
     }

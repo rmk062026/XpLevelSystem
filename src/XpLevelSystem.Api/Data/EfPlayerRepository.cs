@@ -1,3 +1,4 @@
+
 using Microsoft.EntityFrameworkCore;
 using XpLevelSystem.Core;
 
@@ -16,26 +17,28 @@ public class EfPlayerRepository : IPlayerRepository
     {
         var entry = _context.Players.Add(player);
         _context.SaveChanges();
+
         return entry.Property<int>("Id").CurrentValue;
     }
 
-    public Player? GetById(int id)
+    public Player? GetById(Guid userId, int id)
     {
-        return _context.Players.Find(id);
+        return _context.Players.FirstOrDefault(p =>
+            EF.Property<int>(p, "Id") == id &&
+            p.UserId == userId);
     }
 
-    public void Update(int id, Player player)
+    public void Update(Guid userId, int id, Player player)
     {
-        var entry = _context.Entry(player);
+        var existingPlayer = GetById(userId, id);
 
-        if (entry.State == EntityState.Detached)
+        if (existingPlayer == null || player.UserId != userId)
         {
-            _context.Players.Attach(player);
-            entry = _context.Entry(player);
-            entry.Property("Id").CurrentValue = id;
+            return;
         }
 
-        entry.State = EntityState.Modified;
+        existingPlayer.Name = player.Name;
+
         _context.SaveChanges();
     }
 }
