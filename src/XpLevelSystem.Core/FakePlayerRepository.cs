@@ -33,4 +33,16 @@ public class FakePlayerRepository : IPlayerRepository
             _players[id] = player;
         }
     }
+
+    public bool Delete(Guid userId, int id)
+    {
+        var player = GetById(userId, id);
+
+        if (player == null)
+        {
+            return false;
+        }
+
+        return _players.Remove(id);
+    }
 }

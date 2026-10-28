@@ -287,6 +287,82 @@ public class PlayerApiTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(0, player.Experience);
         Assert.Equal(1, player.Level);
     }
+
+
+    [Fact]
+    public async Task DeletePlayer_ShouldReturn204WhenPlayerExists()
+    {
+        // Arrange
+        var createResponse = await _client.PostAsJsonAsync(
+            "/api/players",
+            new { Name = "Martin" });
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var player = await createResponse.Content
+            .ReadFromJsonAsync<PlayerResponse>();
+
+        Assert.NotNull(player);
+
+        // Act
+        var response = await _client.DeleteAsync(
+            $"/api/players/{player.Id}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        // Kontroller at spilleren er slettet
+        var getResponse = await _client.GetAsync(
+            $"/api/players/{player.Id}");
+
+        Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeletePlayer_ShouldReturn404ForOtherUser()
+    {
+        // Arrange
+        using var userA = CreateAuthenticatedClient(Guid.NewGuid());
+        using var userB = CreateAuthenticatedClient(Guid.NewGuid());
+
+        var createResponse = await userA.PostAsJsonAsync(
+            "/api/players",
+            new { Name = "PrivatePlayer" });
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var player = await createResponse.Content
+            .ReadFromJsonAsync<PlayerResponse>();
+
+        Assert.NotNull(player);
+
+        // Act
+        var response = await userB.DeleteAsync(
+            $"/api/players/{player.Id}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+        // Kontroller at eieren fortsatt kan hente spilleren
+        var getResponse = await userA.GetAsync(
+            $"/api/players/{player.Id}");
+
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeletePlayer_ShouldReturn401WithoutToken()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        // Act
+        var response = await client.DeleteAsync("/api/players/1");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
 }
 
 public record PlayerResponse(

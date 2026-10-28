@@ -102,6 +102,19 @@ public class PlayersController : ControllerBase
             return BadRequest("XP må være større enn 0.");
         }
     }
+
+    [HttpDelete("{id:int}")]
+    public IActionResult DeletePlayer(int id)
+    {
+        var deleted = _service.DeletePlayer(GetUserId(), id);
+
+        if (!deleted)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
+    }
 }
 
 public record CreatePlayerRequest(string Name);

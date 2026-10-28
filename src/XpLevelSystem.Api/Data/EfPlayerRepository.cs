@@ -41,4 +41,19 @@ public class EfPlayerRepository : IPlayerRepository
 
         _context.SaveChanges();
     }
+
+    public bool Delete(Guid userId, int id)
+    {
+        var player = GetById(userId, id);
+
+        if (player == null)
+        {
+            return false;
+        }
+
+        _context.Players.Remove(player);
+        _context.SaveChanges();
+
+        return true;
+    }
 }

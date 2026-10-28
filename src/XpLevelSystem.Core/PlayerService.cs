@@ -52,4 +52,8 @@ public class PlayerService
         return player;
     }
 
+    public bool DeletePlayer(Guid userId, int id)
+    {
+        return _repository.Delete(userId, id);
+    }
 }
