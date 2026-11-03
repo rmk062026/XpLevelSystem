@@ -12,7 +12,7 @@ Jeg har valgt tre svakheter som kan påvirke hvordan prosjektet fungerer og hvor
 
 Jeg har to implementasjoner av `IPlayerRepository`: `FakePlayerRepository` og `EfPlayerRepository`.
 
-I `FakePlayerRepository` blir hele spillerobjektet erstattet når `Update()` blir kalt. I `EfPlayerRepository` blir bare navnet kopiert over til objektet som allerede ligger i databasen.
+Før forbedringen erstattet FakePlayerRepository hele spillerobjektet ved Update(), mens EfPlayerRepository bare kopierte navnet. XP og level ble lagret fordi EF Core allerede sporet objektet.
 
 XP og level blir likevel lagret i dagens løsning fordi Entity Framework Core sporer endringene på spillerobjektet.
 
@@ -24,9 +24,13 @@ Testene som bruker `FakePlayerRepository`, kan også gi et annet resultat enn n�
 
 **Mulig løsning:**
 
-Jeg kan endre `EfPlayerRepository` slik at den oppdaterer de samme verdiene som `FakePlayerRepository`, uten å gjøre XP og level fritt endringsbare utenfor `Player`-klassen.
+Jeg vurderte to løsninger: å kopiere alle verdiene eksplisitt eller å fortsette å bruke EF Core-sporing.
 
-Jeg bør også legge til en test som bruker den ekte EF Core-implementasjonen.
+Jeg valgte EF Core-sporing og la til en kontroll med ReferenceEquals. Da blir det tydelig at Update() krever et spillerobjekt som allerede spores av samme DbContext.
+
+Jeg har også lagt til tester med SQLite for å kontrollere at XP og level blir lagret riktig.
+
+De to repository-implementasjonene fungerer fortsatt ikke helt likt. Dette er dokumentert i ADR-en.
 
 **Prioritet: Høy**
 

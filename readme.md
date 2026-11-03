@@ -185,7 +185,7 @@ Testene dekker blant annet:
 - Krav om JWT for spillerendepunkter.
 - At brukere ikke kan hente eller endre andre brukeres spillere.
 
-Ved siste testkjøring bestod alle 17 testene.
+Ved siste testkjøring bestod alle 22 testene.
 
 ## Manuell testing
 
