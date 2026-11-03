@@ -185,7 +185,7 @@ Testene dekker blant annet:
 - Krav om JWT for spillerendepunkter.
 - At brukere ikke kan hente eller endre andre brukeres spillere.
 
-Ved siste testkjøring bestod alle 17 testene.
+Ved siste testkjøring bestod alle 22 testene.
 
 ## Manuell testing
 
@@ -214,3 +214,22 @@ Jeg har kontrollert at:
 Spillerendepunktene krever JWT i `Authorization`-headeren.
 
 Den opprinnelige API-kontrakten finnes i [api.md](api.md).
+
+
+## Uke 4 – Arkitektur-review
+
+I denne oppgaven har jeg gått gjennom arkitekturen i prosjektet og sett på hva som kan forbedres.
+
+Jeg har laget et arkitekturdiagram, dokumentert tre svakheter og sammenlignet to løsninger for `EfPlayerRepository.Update()`.
+
+Jeg valgte å bruke EF Core-sporing og la inn en kontroll som sjekker at objektet som oppdateres, er det samme objektet som EF Core sporer.
+
+Jeg la også til to tester med SQLite for å kontrollere at XP og level blir lagret, og at et annet spillerobjekt blir avvist.
+
+Alle 22 testene består.
+
+Dokumentasjonen ligger her:
+
+- [Arkitekturdiagram og forklaring](docs/architecture/architecture.md)
+- [Gjennomgang av svakheter](docs/architecture/review.md)
+- [Arkitekturbeslutning (ADR)](docs/architecture/adr.md)

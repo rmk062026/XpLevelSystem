@@ -37,7 +37,13 @@ public class EfPlayerRepository : IPlayerRepository
             return;
         }
 
-        existingPlayer.Name = player.Name;
+        // Update bruker spilleren som EF Core allerede sporer.
+        // Da blir endringer i XP og level lagret med SaveChanges.
+        if (!ReferenceEquals(existingPlayer, player))
+        {
+            throw new InvalidOperationException(
+                "Spilleren må være hentet fra samme DbContext.");
+        }
 
         _context.SaveChanges();
     }
