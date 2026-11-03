@@ -74,10 +74,16 @@ Jeg ønsker også å beholde private setters, slik at XP og level ikke kan endre
 
 ## Consequences
 
-Koden i `EfPlayerRepository.Update()` blir enklere.
+`EfPlayerRepository.Update()` bruker nå EF Core-sporing i stedet for å kopiere verdier manuelt.
 
-Løsningen vil fortsatt være avhengig av at spillerobjektet spores av samme DbContext.
+Jeg har lagt til `ReferenceEquals` for å kontrollere at objektet som sendes inn, er det samme som EF Core allerede sporer. Hvis det er et annet objekt, kaster metoden `InvalidOperationException`.
 
-Jeg må være oppmerksom på dette hvis jeg senere endrer hvordan PlayerService eller repository fungerer.
+Dette gjør det tydeligere hvordan metoden skal brukes, men det betyr også at FakePlayerRepository og EfPlayerRepository fortsatt ikke fungerer helt likt.
 
-Jeg bør også ha en test mot EF Core, siden FakePlayerRepository ikke tester hvordan EF-sporing fungerer.
+Jeg har lagt til to tester med SQLite:
+- En test som kontrollerer at XP og level blir lagret i databasen.
+- En test som kontrollerer at et annet spillerobjekt blir avvist.
+
+Alle 22 testene består etter endringen.
+
+Hvis jeg senere vil støtte oppdatering med nye spillerobjekter, må jeg endre løsningen og vurdere ADR-en på nytt.
